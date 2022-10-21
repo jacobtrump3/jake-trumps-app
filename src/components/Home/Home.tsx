@@ -1,6 +1,8 @@
 import profilePic from '../../images/ProfilePic.jpeg'
 import styled from 'styled-components';
 import DownloadIcon from '../../icons/DownloadIcon';
+import HouseIcon from '../../icons/HouseIcon';
+import { Key, MutableRefObject, useEffect, useRef } from 'react';
 
 const ProfilePic = styled.img`
   border-radius: 50%;
@@ -10,7 +12,40 @@ const ResumeLabel = styled.div`
     min-width: 220px
 `;
 
+interface SidebarOutlineItemProps {
+    subItems?: {title: string, referenceEl: MutableRefObject<any>}[],
+    title: string,
+    referenceEl: MutableRefObject<any>,
+}
+const SidebarOutlineItem = (props: SidebarOutlineItemProps) => {
+
+    const handleClick = (ref: MutableRefObject<any>) => {
+        if (ref.current.style.scrollMargin === '') {
+            ref.current.style.scrollMargin = '20px'
+        }
+        ref.current.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest'})
+    }
+    return (
+        <div className='mb-3'>
+            <strong style={{cursor: 'pointer'}} onClick={() => {handleClick(props.referenceEl)}}>{props.title}</strong>
+            {props.subItems?.map((item: {title: String, referenceEl: MutableRefObject<any>}) => (
+               <div style={{cursor: 'pointer'}} className="ms-4" key={item.title as Key} onClick={() => {handleClick(item.referenceEl)}}>{item.title}</div>
+            ))}
+        </div>
+    )
+}
 export const Home = () => {
+
+    let refMap: any = {
+        introductionRef: useRef<HTMLInputElement>(null),
+        resumeRef: useRef<HTMLInputElement>(null),
+        summaryRef: useRef<HTMLInputElement>(null),
+        historyRef: useRef<HTMLInputElement>(null),
+        educationRef: useRef<HTMLInputElement>(null),
+        generalRef: useRef<HTMLInputElement>(null),
+    }
+
+    const scrollableOutline = useRef<HTMLInputElement>(null)
     const handleDownloadResume = () => {
         fetch('Jacob_Trump_Resume_2022.pdf').then(response => {
             response.blob().then(blob => {
@@ -22,31 +57,48 @@ export const Home = () => {
             })
         })
     }
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(entries => entries)
+        Object.values(refMap).forEach((ref: any) => {
+            if(ref.current) {
+                observer.observe(ref.current)
+            }
+        })
+        return () => {
+            observer.disconnect();
+        }
+    })
     return (
         <div>
-            <h2 className='d-flex justify-content-center pt-4 pb-3 border-top border-info mt-0'>Home</h2>
+            <h2 className='d-flex justify-content-center pt-4 pb-3 border-top border-info mt-0'>
+                <HouseIcon height={28} width={28} style={{marginTop: "2px", marginRight: "8px"}}/> 
+                Home
+            </h2>
             <div className="container-fluid d-flex flex-column overflow-hidden" style={{height: 'calc(100vh - 148px)'}}>
                 <div className="row overflow-hidden ps-4 border-top border-info">
-                    <div className="col-3 col-lg-2 border-end border-info vh-100 pt-5">
+                    <div className=" border-end border-info pt-5" style={{width: '224px'}}>
+                        <SidebarOutlineItem title="Introduction" referenceEl={refMap.introductionRef}/>
                         <div className="mb-3">
-                            <strong>Introduction</strong>
+                            <SidebarOutlineItem 
+                                title="Resume" 
+                                referenceEl={refMap.resumeRef}
+                                subItems={[
+                                    {title: 'Professional Summar', referenceEl: refMap.summaryRef},
+                                    {title: 'Work History', referenceEl: refMap.historyRef},
+                                    {title: 'Education', referenceEl: refMap.educationRef},
+                                ]}
+                            />
                         </div>
-                        <div className="mb-3">
-                            <div className="mb-2">
-                                <strong>Resume</strong>
-                            </div>
-                            <div className="ms-4">Professional Summary</div>
-                            <div className="ms-4">Work History</div>
-                            <div className="ms-4">Education</div>
-
-                        </div>
-                        <div className="mb-3">
-                            <strong>General</strong>
-                        </div>
+                        <SidebarOutlineItem title="General" referenceEl={refMap.generalRef}/>
                     </div>
-                    <div className="col mh-100 overflow-auto ms-5 ps-5 pe-4 d-flex flex-column pt-5">
+                    <div 
+                        className="col mh-100 overflow-auto ms-5 ps-5 pe-4 d-flex flex-column pt-5"
+                        style={{bottom: 0}}
+                        ref={scrollableOutline}
+                    >
                         <div className='row d-flex justify-content-center mb-5'>
-                            <h3 id="introduction-header" className="mb-5">Introduction</h3>
+                            <h3 ref={refMap.introductionRef} className="mb-5">Introduction</h3>
                             <div className='col-lg-8 col-md-9 col-sm-10'>
                                 <div className="d-flex justify-content-center">
                                     <ProfilePic src={profilePic} alt="Profile Pic" className='me-5'/>
@@ -65,15 +117,17 @@ export const Home = () => {
                             </div>
                         </div>
                         <div className='row d-flex justify-content-center my-5'>
-                            <h3 id="resume-header" className="mb-5">
+                            <h3 id="resume-header" className="mb-5" ref={refMap.resumeRef}>
                                 Resume 
                                 <DownloadIcon 
-                                    style={{cursor: 'pointer', marginLeft: '12px'}} 
+                                    style={{cursor: 'pointer', marginLeft: '12px', marginTop: '-4px'}}
+                                    height={24}
+                                    width={24}
                                     onClick={handleDownloadResume}
                                 />
                             </h3>
                             <div className='col-lg-8 col-md-9 col-sm-10'>
-                                <h4 className="mb-5">Professional Summary</h4>
+                                <h4 className="mb-5" ref={refMap.summaryRef}>Professional Summary</h4>
                                 <div className="d-flex justify-content-center">
                                     <p className="text-justify"> 
                                         Motivated and ambitious Software Engineer experienced in working effectively in 
@@ -84,14 +138,14 @@ export const Home = () => {
                                 </div>
                             </div>
                             <div className='col-lg-8 col-md-9 col-sm-10'>
-                                <h4 className="my-5">Work History</h4>
+                                <h4 className="my-5" ref={refMap.historyRef}>Work History</h4>
                                 <div className="d-flex justify-content-center">
                                     <ResumeLabel>
                                         <div>
                                             July 2021 - September 2022
                                         </div>
                                         <strong>
-                                            Sr Frontend Engineer
+                                            Software Engineer
                                         </strong>
                                         <div>
                                             Postclick
@@ -280,7 +334,7 @@ export const Home = () => {
                                 </div>
                             </div>
                             <div className='col-lg-8 col-md-9 col-sm-10'>
-                                <h4 className="mb-5">Education</h4>
+                                <h4 className="mb-5" ref={refMap.educationRef}>Education</h4>
                                 <div>
                                     <div>
                                         December 2017
@@ -294,6 +348,9 @@ export const Home = () => {
                                 </div>
                             </div>
                         </div>
+                        <h3 id="resume-header" className="mb-5" ref={refMap.generalRef}>
+                                General 
+                        </h3>
                     </div>
                 </div>
             </div>

@@ -6,7 +6,7 @@ import TreeIcon from "../../icons/TreeIcon"
 import "./NavigationBar.scss"
 const LinkedNavBarItem = (props: any) => {
     const location = useLocation()
-    const selected = location.pathname === props.to
+    const selected = location.pathname.includes(props.to)
     return (
         <Link to={props.to} className={`me-4 mt-2 ${selected ? 'text-black' : 'text-muted'}`}>
             {props.children}
@@ -19,9 +19,9 @@ const LinkedNavBarDropDown = (props: any) => {
         label: string
     }
     const location = useLocation()
-    const selected = props.links.findIndex((link: LinkInterface) => link.path === location.pathname) > -1
+    const selected = props.links.findIndex((link: LinkInterface) => location.pathname.includes(link.path)) > -1
     return (
-        <NavDropdown title="Notes" className={`me-2 ${selected && 'selected-nav-dropdown'}`}>
+        <NavDropdown title={props.title} className={`me-2 ${selected && 'selected-nav-dropdown'}`}>
             {props.links.map((link: LinkInterface) => (
                 <div className="mx-3 my-1" key={link.label}>
                     <LinkedNavBarItem to={link.path}>{link.label}</LinkedNavBarItem>
@@ -41,15 +41,21 @@ export const NavigationBar = () => {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
-                        <LinkedNavBarItem to="/">Home</LinkedNavBarItem>
-                        <NavDropdown title="Pojects" className="me-2" id="navbar-projects-dropdown">
-                            <NavDropdown.Item href="#action/3.1">React</NavDropdown.Item>
-                            <NavDropdown.Item href="#action/3.1">Angular</NavDropdown.Item>
-                        </NavDropdown>
-                        <LinkedNavBarDropDown links={[
-                            {path: '/react-examples', label: 'React'},
-                            {path: '/angular-examples', label: 'Angular'}
-                        ]}/>                
+                        <LinkedNavBarItem to="/home">Home</LinkedNavBarItem>
+                        <LinkedNavBarDropDown 
+                            title={'Projects'}
+                            links={[
+                                {path: '/react-projects', label: 'React'},
+                                {path: '/angular-projects', label: 'Angular'}
+                            ]}
+                        />    
+                        <LinkedNavBarDropDown
+                            title={'Notes'}
+                            links={[
+                                {path: '/react-examples', label: 'React'},
+                                {path: '/angular-examples', label: 'Angular'}
+                            ]}
+                        />                
                     </Nav>
                 </Navbar.Collapse>
                 <Navbar.Text className="position-absolute end-0">
